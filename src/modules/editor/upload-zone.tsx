@@ -129,13 +129,24 @@ const UploadZone = ({ onImageUpload }: UploadZoneProps) => {
   };
 
   const checkUsage = async () => {
-    const response = await fetch("/api/usage");
-    if (!response.ok) {
-      throw new Error("Failed to check usage");
+    try {
+      const response = await fetch("/api/usage");
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 401) {
+          console.error("User not authenticated");
+          return null;
+        }
+        console.error("Usage check failed:", errorData);
+        return null;
+      }
+      const data = await response.json();
+      setUsageData(data);
+      return data;
+    } catch (error) {
+      console.error("Failed to check usage:", error);
+      return null;
     }
-    const data = await response.json();
-    setUsageData(data);
-    return data;
   };
 
   const updateUsage = async () => {
